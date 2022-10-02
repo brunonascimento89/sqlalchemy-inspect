@@ -17,14 +17,14 @@ Creating a SQLAlchemy model
 from sqlalchemy_inspect import database
 from decouple import config
 
-conn = database.MySQL(
+conn = database.SQL(
         host=config('DB_HOST'),
         port=config('DB_PORT'),
         database=config('DB_NAME'),
         user=config('DB_USER'),
         password=config('DB_PASS')
     )
-conn.extract_model(filename='test_abc.py', engine_args=True)
+conn.extract_model(filename='test_model.py', engine='mysql+pymysql', engine_args=True)
 ```
 
 Configuring .env file
