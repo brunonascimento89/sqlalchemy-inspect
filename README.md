@@ -2,7 +2,7 @@
 
 Get your database schema into your SQLAlchemy model
 
-First steps:
+## First steps:
 
     1. virtualenv venv (recomended)
         a. venv/Scripts/activate (windows) or source venv/bin/activate (linux)
@@ -14,19 +14,17 @@ First steps:
 Creating a SQLAlchemy model
 
 ```python
-from sqlalchemy_inspect import MySQLdb
+from sqlalchemy_inspect import database
 from decouple import config
 
-conn = MySQLdb(
+conn = database.MySQL(
         host=config('DB_HOST'),
         port=config('DB_PORT'),
         database=config('DB_NAME'),
         user=config('DB_USER'),
-        password=config('DB_PASS'),
-        filename='test_abc.py',
-        engine_args=True
+        password=config('DB_PASS')
     )
-conn.extract_model()
+conn.extract_model(filename='test_abc.py', engine_args=True)
 ```
 
 Configuring .env file

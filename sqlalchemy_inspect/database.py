@@ -1,8 +1,12 @@
 import os
+import urllib.parse as parse
 from sqlalchemy import create_engine, inspect
 
 
 def capitalize_strings(string):
+    '''
+    Example: test_string -> TestString
+    '''
     string_str = ''
     for name in string.split('_'):
         if not string_str: string_str = name.capitalize()
@@ -10,43 +14,56 @@ def capitalize_strings(string):
     return string_str
 
 
-class MySQLdb:
+class SQL:
 
-    def __init__ (self, host, port, database, user, password, filename, engine_args=False):
+    def __init__ (self, host, port=None, database=None, user=None, password=None):
         '''
         host: server host\n
         port: server port\n
         database: database name or database ip address\n
         user: username of database\n
         password: password of database\n
-        filename: name of SQLAlchemy model\n
-        engine_args: insert arguments in engine. Default=False\n
         '''
         self.host = host
         self.port = port
         self.database = database
         self.user = user
         self.password = password
-        self.filename = filename
-        self.engine_args = engine_args
 
-    def extract_model(cls):
+
+    def extract_model(cls, filename, engine, engine_args=False):
         '''
         Create SQLAlchemy Model
+        filename: name of SQLAlchemy model. Example: filename.py\n
+        engine: choose engine. Engine list: mysql+pymysql, mssql+pymssql, sqlite
+        engine_args: insert arguments in engine. Default=False\n
         '''
+        if engine == 'mysql+pymysql':
+            if cls.port is None or cls.database is None or cls.user is None or cls.password is None: raise Exception('Check port, database, user or password')
+            connection = 'mysql+pymysql://{user}:{password}@{host}:{port}/{name}'.format(
+                user=cls.user, password=cls.password, host=cls.host, port=cls.port, name=cls.database,
+            )
+        elif engine == 'mssql+pymssql':
+            if cls.database is None or cls.user is None or cls.password is None: raise Exception('Check database, user or password')
+            connection = 'mssql+pymssql://{user}:{password}@{server}/{database}'.format(
+                user=cls.user, password=parse.quote(cls.password), server=cls.host, database=cls.database
+            )
+        elif engine == 'sqlite':
+            connection = 'sqlite:///{}'.format(cls.host)
+        else:
+            raise Exception(f'{engine} is not available in this build')
+        
         try:
-            engine = create_engine('{engine}://{user}:{password}@{host}:{port}/{name}'.format(
-                engine='mysql+pymysql', user=cls.user, password=cls.password, host=cls.host, port=cls.port, name=cls.database,
-            ))
+            engine = create_engine(connection)
         except Exception as e:
-            raise Exception(f'Something goes wrong with \'{cls.host}\' database. Error : {e}')
+            raise Exception(f'Something goes wrong with \'{cls.host}\' database. Error: {e}')
         else:
             try:
                 inspector = inspect(engine)
             except Exception as e:
-                raise Exception(e)
+                raise Exception(f'Got an error inspecting engine: {e}')
         
-        with open(os.path.join(os.getcwd(), f'{cls.filename}'), 'w') as f:
+        with open(os.path.join(os.getcwd(), f'{filename}'), 'w') as f:
             f.write("from sqlalchemy import create_engine, Column, BigInteger, SmallInteger, Float, String, Integer, Date, TIMESTAMP, DateTime, Text, ForeignKey\n")
             f.write("from sqlalchemy.ext.declarative import  declarative_base\n")
             f.write("from sqlalchemy.orm import relationship\n\n")
@@ -55,7 +72,7 @@ class MySQLdb:
 
             f.write("from decouple import config\n\n")
 
-            if cls.engine_args:
+            if engine_args:
                 f.write("engine = create_engine('mysql+pymysql://{creds}:{creds}@{creds}:{creds}/{creds}' % (config('DB_USER'), config('DB_PASS'), config('DB_HOST'), config('DB_PORT'), config('DB_NAME')))\n".format(creds="%s"))
             else:
                 f.write("engine = create_engine('mysql+pymysql://')\n")

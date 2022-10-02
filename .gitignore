@@ -8,3 +8,4 @@
 !setup.py
 
 !/sqlalchemy_inspect/
+/sqlalchemy_inspect/__pycache__/
