@@ -1,0 +1,10 @@
+*
+
+!.env_evample
+!.gitignore
+!LICENSE
+!.README.md
+!requirements.txt
+!setup.py
+
+!sqlalchemy_inspect/.*
