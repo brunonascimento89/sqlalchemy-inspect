@@ -1,4 +1,4 @@
-*
+/*
 
 !.env_evample
 !.gitignore
@@ -7,4 +7,4 @@
 !requirements.txt
 !setup.py
 
-!sqlalchemy_inspect/
+!/sqlalchemy_inspect/
